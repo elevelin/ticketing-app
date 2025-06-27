@@ -13,13 +13,11 @@ function TicketList({ tickets, claimTicket, currentUser }) {
   const myTickets = tickets.filter((t) => t.owner === currentUser);
   const [view, setView] = useState("all");
 
-  // Normalize status to lowercase for filtering
   const normalizedTickets = tickets.map((t) => ({
     ...t,
     status: t.status?.toLowerCase(),
   }));
 
-  // Filter tickets by allowed statuses
   const allowedStatuses = [
     "open",
     "acknowledged",
@@ -302,7 +300,9 @@ function TicketDetail({ tickets, onUpdate }) {
     status: ticket?.status || "open",
     owner: ticket?.owner || "",
     description: ticket?.description || "",
-  });
+    issue_type: ticket?.issue_type || "",
+    subcategory: ticket?.subcategory || "",
+});
 
   const handleUpdate = async () => {
     await onUpdate(ticket.id, formState);
@@ -372,6 +372,34 @@ function TicketDetail({ tickets, onUpdate }) {
             onChange={(e) => setFormState({ ...formState, owner: e.target.value })}
             className="w-full p-2 border rounded"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mt-4">Issue Type</label>
+        <select
+        value={formState.issue_type}
+        onChange={(e) => setFormState({ ...formState, issue_type: e.target.value })}
+        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+        >
+        <option value="">Select Issue Type</option>
+        <option value="Bug">Bug</option>
+        <option value="Feature">Feature</option>
+        <option value="Support">Support</option>
+        </select>
+
+        <label className="block text-sm font-medium text-gray-700 mt-4">
+        Subcategory
+        </label>
+        <select
+        value={formState.subcategory}
+        onChange={(e) => setFormState({ ...formState, subcategory: e.target.value })}
+        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+        >
+        <option value="">Select Subcategory</option>
+        <option value="UI">UI</option>
+        <option value="Backend">Backend</option>
+        <option value="Deployment">Deployment</option>
+        </select>
         </div>
 
         <div>

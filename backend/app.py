@@ -102,9 +102,15 @@ def update_ticket(ticket_id):
         ticket.owner = data['owner']
     if 'description' in data:
         ticket.description = data['description']
+    if 'subject' in data:
+        ticket.subject = data['subject']
+    if 'issue_type' in data:
+        ticket.issue_type = data['issue_type']
+    if 'subcategory' in data:
+        ticket.subcategory = data['subcategory']
 
     db.session.commit()
-    return jsonify({"message": f"Ticket {ticket_id} updated."}), 200
+    return jsonify({'message': 'Ticket updated'}), 200
 
 # Get ticket by owner
 @app.route('/tickets/owner/<string:owner>', methods=['GET'])
