@@ -52,7 +52,7 @@ pip install flask flask-cors flask-sqlalchemy
 python app.py
 ```
 
-Runs on: \`http://localhost:5000\`
+Runs on: \`http://localhost:5050\`
 
 ---
 
