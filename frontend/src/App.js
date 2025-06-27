@@ -43,19 +43,18 @@ function TicketList({ tickets, claimTicket, currentUser }) {
 
       <div>
         {(view === "all" ? allTickets : myTickets).map((ticket) => (
-          <div key={ticket.id} className="border p-4 mb-2 rounded bg-white shadow">
-            <p className="text-sm text-gray-500 font-semibold mb-1">Ticket ID: {ticket.id}</p>
-            <h3 className="font-bold text-lg mb-1">{ticket.subject}</h3>
-            <p>{ticket.description}</p>
-            <p className="text-sm text-gray-500">
-              Priority: {ticket.priority} | Owner: {ticket.owner || "Unclaimed"}
-            </p>
+          <div key={ticket.id} className="border p-4 mb-6 rounded bg-white shadow">
             <Link
               to={`/ticket/${ticket.id}`}
-              className="text-blue-600 underline mr-4"
+              className="text-sm text-purple-700 font-bold mb-3 block hover:underline"
             >
-              View Task
+              Ticket ID: {ticket.id}
             </Link>
+            <h3 className="font-bold text-lg mb-2">{ticket.subject}</h3>
+            <p className="mb-2">{ticket.description}</p>
+            <p className="text-sm text-gray-500 mb-2">
+              Priority: {ticket.priority} | Owner: {ticket.owner || "Unclaimed"}
+            </p>
             {view === "all" && (!ticket.owner || ticket.owner === "") && (
               <button
                 className="mt-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
@@ -199,6 +198,7 @@ function SubmitTicket({ onSubmit }) {
 
 function TicketDetail({ tickets, onUpdate }) {
   const { id } = useParams();
+  const navigate = useNavigate();
   const ticket = tickets.find((t) => t.id === parseInt(id));
   const [formState, setFormState] = useState({
     subject: ticket?.subject || "",
@@ -210,6 +210,7 @@ function TicketDetail({ tickets, onUpdate }) {
 
   const handleUpdate = async () => {
     await onUpdate(ticket.id, formState);
+    navigate("/");
   };
 
   if (!ticket) return <p className="p-4">Ticket not found</p>;
@@ -248,7 +249,7 @@ function TicketDetail({ tickets, onUpdate }) {
             <option value="1">1 - Low</option>
             <option value="2">2 - Medium</option>
             <option value="3">3 - High</option>
-            <option value="99">Unbreak Immediately</option>
+            <option value="99">4 - Unbreak Immediately</option>
           </select>
         </div>
 
@@ -281,12 +282,20 @@ function TicketDetail({ tickets, onUpdate }) {
           <input className="w-full p-2 border rounded text-gray-400" disabled value="Coming Soon..." />
         </div>
 
-        <button
-          onClick={handleUpdate}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Save Changes
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => navigate("/")}
+            className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleUpdate}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Save Changes
+          </button>
+        </div>
       </div>
     </div>
   );
