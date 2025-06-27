@@ -1,8 +1,8 @@
-# 🛠️ Ticketing App
+# Ticketing App
 
 A simple full-stack IT ticketing system built with React and Flask. Submit, view, and manage support tickets through a clean and minimal UI.
 
-## 🚀 Features
+## Features
 
 - Create new tickets with subject, description, priority, and category
 - View open and acknowledged tickets on the homepage
@@ -13,7 +13,7 @@ A simple full-stack IT ticketing system built with React and Flask. Submit, view
 
 ---
 
-## 🖥️ Project Structure
+## Project Structure
 ```
 ticketing-app/
 │
@@ -30,7 +30,7 @@ ticketing-app/
 
 ---
 
-## ⚙️ Setup Instructions
+## Setup Instructions
 
 ### 1. Clone the Repo
 
@@ -70,7 +70,7 @@ Runs on: \`http://localhost:3000\`
 
 ---
 
-## 📝 To Do
+## To Do
 
 - [ ] Add filters (by priority, issue type, etc.)
 - [ ] Add ability to claim tickets
@@ -79,7 +79,7 @@ Runs on: \`http://localhost:3000\`
 
 ---
 
-## 💡 Credits
+## Credits
 
 Built by [@elevelin](https://github.com/elevelin) with React + Flask for fun and learning.
 
