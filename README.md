@@ -14,8 +14,7 @@ A simple full-stack IT ticketing system built with React and Flask. Submit, view
 ---
 
 ## 🖥️ Project Structure
-
-\`\`\`
+```
 ticketing-app/
 │
 ├── backend/              # Flask backend API
@@ -27,7 +26,7 @@ ticketing-app/
 │   └── public/           # Static files
 │
 └── README.md             # You're reading it!
-\`\`\`
+```
 
 ---
 
@@ -35,23 +34,23 @@ ticketing-app/
 
 ### 1. Clone the Repo
 
-\`\`\`bash
+```
 git clone https://github.com/elevelin/ticketing-app.git
 cd ticketing-app
-\`\`\`
+```
 
 ---
 
 ### 2. Backend (Flask)
 
-\`\`\`bash
+```
 cd backend
 python3 -m venv venv
 source venv/bin/activate
 
 pip install flask flask-cors flask-sqlalchemy
 python app.py
-\`\`\`
+```
 
 Runs on: \`http://localhost:5000\`
 
@@ -61,11 +60,11 @@ Runs on: \`http://localhost:5000\`
 
 In a new terminal window:
 
-\`\`\`bash
+```
 cd frontend
 npm install
 npm start
-\`\`\`
+```
 
 Runs on: \`http://localhost:3000\`
 
