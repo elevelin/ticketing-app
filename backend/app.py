@@ -91,6 +91,45 @@ def claim_ticket(ticket_id):
     db.session.commit()
     return jsonify({"message": f"Ticket {ticket_id} claimed."})
 
+@app.route('/tickets/<int:ticket_id>', methods=['PUT'])
+def update_ticket(ticket_id):
+    ticket = Ticket.query.get_or_404(ticket_id)
+    data = request.get_json()
+
+    # Update fields safely
+    if 'priority' in data:
+        ticket.priority = data['priority']
+    if 'status' in data:
+        ticket.status = data['status']
+    if 'owner' in data:
+        ticket.owner = data['owner']
+    if 'description' in data:
+        ticket.description = data['description']
+
+    db.session.commit()
+    return jsonify({"message": f"Ticket {ticket_id} updated."}), 200
+
+# Get ticket by owner
+@app.route('/tickets/owner/<string:owner>', methods=['GET'])
+def get_tickets_by_owner(owner):
+    tickets = Ticket.query.filter_by(owner=owner).all()
+    return jsonify([
+        {
+            "id": t.id,
+            "subject": t.subject,
+            "description": t.description,
+            "issue_type": t.issue_type,
+            "subcategory": t.subcategory,
+            "priority": t.priority,
+            "status": t.status,
+            "owner": t.owner,
+            "is_incident": t.is_incident,
+            "created_at": t.created_at.isoformat(),
+            "updated_at": t.updated_at.isoformat()
+        }
+        for t in tickets
+    ])
+
 # Start the app on port 5050
 if __name__ == '__main__':
     app.run(debug=True, port=5050)

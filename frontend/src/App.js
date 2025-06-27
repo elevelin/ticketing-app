@@ -1,8 +1,77 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 
-function App() {
-  const [tickets, setTickets] = useState([]);
+function TicketList({ tickets, claimTicket, currentUser }) {
+  const allTickets = tickets.filter(
+    (t) => t.status === "open" || t.status === "acknowledged"
+  );
+  const myTickets = tickets.filter((t) => t.owner === currentUser);
+  const [view, setView] = useState("all");
+
+  return (
+    <div className="max-w-4xl mx-auto p-4">
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <button
+            onClick={() => setView("all")}
+            className={`mr-2 px-4 py-2 rounded ${view === "all" ? "bg-blue-600 text-white" : "bg-white border"}`}
+          >
+            All Tickets
+          </button>
+          <button
+            onClick={() => setView("mine")}
+            className={`px-4 py-2 rounded ${view === "mine" ? "bg-blue-600 text-white" : "bg-white border"}`}
+          >
+            My Tasks
+          </button>
+        </div>
+        <Link
+          to="/submit"
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+        >
+          + New Ticket
+        </Link>
+      </div>
+
+      <div>
+        {(view === "all" ? allTickets : myTickets).map((ticket) => (
+          <div key={ticket.id} className="border p-4 mb-2 rounded bg-white shadow">
+            <p className="text-sm text-gray-500 font-semibold mb-1">Ticket ID: {ticket.id}</p>
+            <h3 className="font-bold text-lg mb-1">{ticket.subject}</h3>
+            <p>{ticket.description}</p>
+            <p className="text-sm text-gray-500">
+              Priority: {ticket.priority} | Owner: {ticket.owner || "Unclaimed"}
+            </p>
+            <Link
+              to={`/ticket/${ticket.id}`}
+              className="text-blue-600 underline mr-4"
+            >
+              View Task
+            </Link>
+            {view === "all" && (!ticket.owner || ticket.owner === "") && (
+              <button
+                className="mt-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={() => claimTicket(ticket.id)}
+              >
+                Claim
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SubmitTicket({ onSubmit }) {
   const [formData, setFormData] = useState({
     subject: "",
     description: "",
@@ -10,7 +79,8 @@ function App() {
     issue_type: "",
     subcategory: "",
   });
-  const [showForm, setShowForm] = useState(false);
+
+  const navigate = useNavigate();
 
   const issueTypeOptions = [
     { value: "network", label: "Network" },
@@ -26,6 +96,206 @@ function App() {
     access: ["Login Issues", "Permission Request", "Account Locked"],
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await onSubmit(formData);
+      navigate("/");
+    } catch (error) {
+      console.error("Error submitting ticket:", error);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto p-6 bg-white mt-8 rounded shadow">
+      <h1 className="text-2xl font-bold mb-4 text-center">Submit a Ticket</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block font-medium">Subject</label>
+          <input
+            type="text"
+            value={formData.subject}
+            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+            className="w-full p-2 border rounded"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium">Description</label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="w-full p-2 border rounded"
+            required
+          ></textarea>
+        </div>
+
+        <div>
+          <label className="block font-medium">Priority</label>
+          <select
+            value={formData.priority}
+            onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+            className="w-full p-2 border rounded"
+          >
+            <option value="0">0 - Feature Request</option>
+            <option value="1">1 - Low</option>
+            <option value="2">2 - Medium</option>
+            <option value="3">3 - High</option>
+            <option value="99">Unbreak Immediately</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block font-medium">Issue Type</label>
+          <select
+            value={formData.issue_type}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                issue_type: e.target.value,
+                subcategory: "",
+              })
+            }
+            className="w-full p-2 border rounded"
+          >
+            <option value="">Select Issue Type</option>
+            {issueTypeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {formData.issue_type && (
+          <div>
+            <label className="block font-medium">Subcategory</label>
+            <select
+              value={formData.subcategory}
+              onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">Select Subcategory</option>
+              {subcategories[formData.issue_type].map((sub) => (
+                <option key={sub} value={sub}>
+                  {sub}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Submit Ticket
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function TicketDetail({ tickets, onUpdate }) {
+  const { id } = useParams();
+  const ticket = tickets.find((t) => t.id === parseInt(id));
+  const [formState, setFormState] = useState({
+    subject: ticket?.subject || "",
+    priority: ticket?.priority || 0,
+    status: ticket?.status || "open",
+    owner: ticket?.owner || "",
+    description: ticket?.description || "",
+  });
+
+  const handleUpdate = async () => {
+    await onUpdate(ticket.id, formState);
+  };
+
+  if (!ticket) return <p className="p-4">Ticket not found</p>;
+
+  return (
+    <div className="max-w-3xl mx-auto p-6 bg-white mt-6 rounded shadow">
+      <div className="space-y-4">
+        <p className="font-bold text-lg text-gray-700">Ticket ID: {ticket.id}</p>
+
+        <div>
+          <label className="block font-medium">Title</label>
+          <input
+            value={formState.subject}
+            onChange={(e) => setFormState({ ...formState, subject: e.target.value })}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium">Description</label>
+          <textarea
+            value={formState.description}
+            onChange={(e) => setFormState({ ...formState, description: e.target.value })}
+            className="w-full p-2 border rounded"
+          ></textarea>
+        </div>
+
+        <div>
+          <label className="block font-medium">Priority</label>
+          <select
+            value={formState.priority}
+            onChange={(e) => setFormState({ ...formState, priority: e.target.value })}
+            className="w-full p-2 border rounded"
+          >
+            <option value="0">0 - Feature Request</option>
+            <option value="1">1 - Low</option>
+            <option value="2">2 - Medium</option>
+            <option value="3">3 - High</option>
+            <option value="99">Unbreak Immediately</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block font-medium">Status</label>
+          <select
+            value={formState.status}
+            onChange={(e) => setFormState({ ...formState, status: e.target.value })}
+            className="w-full p-2 border rounded"
+          >
+            <option value="open">Open</option>
+            <option value="acknowledged">Acknowledged</option>
+            <option value="in_progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block font-medium">Owner</label>
+          <input
+            value={formState.owner}
+            onChange={(e) => setFormState({ ...formState, owner: e.target.value })}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium">Tags (coming soon)</label>
+          <input className="w-full p-2 border rounded text-gray-400" disabled value="Coming Soon..." />
+        </div>
+
+        <button
+          onClick={handleUpdate}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Save Changes
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [tickets, setTickets] = useState([]);
+  const CURRENT_USER = "Current User";
+
   useEffect(() => {
     fetchTickets();
   }, []);
@@ -39,144 +309,34 @@ function App() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post("http://localhost:5050/tickets", formData);
-      fetchTickets();
-      setShowForm(false);
-      setFormData({
-        subject: "",
-        description: "",
-        priority: "0",
-        issue_type: "",
-        subcategory: "",
-      });
-    } catch (error) {
-      console.error("Error submitting ticket:", error);
-    }
+  const createTicket = async (data) => {
+    await axios.post("http://localhost:5050/tickets", data);
+    fetchTickets();
+  };
+
+  const claimTicket = async (id) => {
+    await axios.put(`http://localhost:5050/tickets/${id}/claim`, {
+      owner: CURRENT_USER,
+    });
+    fetchTickets();
+  };
+
+  const updateTicket = async (id, updatedFields) => {
+    await axios.put(`http://localhost:5050/tickets/${id}`, updatedFields);
+    fetchTickets();
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-4xl mx-auto">
-        {!showForm && (
-          <div className="flex items-center justify-center h-[50vh]">
-            <div className="bg-white shadow-md rounded px-8 py-6 border border-gray-300">
-              <h1 className="text-3xl font-bold text-center">Submit a Ticket</h1>
-            </div>
-          </div>
-        )}
-
-        <div className="flex justify-between items-center mt-4">
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            + New Ticket
-          </button>
-        </div>
-
-        {showForm && (
-          <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md mt-4 space-y-4">
-            <div>
-              <label className="block font-medium">Subject</label>
-              <input
-                type="text"
-                value={formData.subject}
-                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium">Description</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full p-2 border rounded"
-                required
-              ></textarea>
-            </div>
-
-            <div>
-              <label className="block font-medium">Priority (0–3)</label>
-              <select
-                value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                className="w-full p-2 border rounded"
-              >
-                <option value="0">0 - Feature Request</option>
-                <option value="1">1 - Low</option>
-                <option value="2">2 - Medium</option>
-                <option value="3">3 - High</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block font-medium">Issue Type</label>
-              <select
-                value={formData.issue_type}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    issue_type: e.target.value,
-                    subcategory: "",
-                  })
-                }
-                className="w-full p-2 border rounded"
-              >
-                <option value="">Select Issue Type</option>
-                {issueTypeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {formData.issue_type && (
-              <div>
-                <label className="block font-medium">Subcategory</label>
-                <select
-                  value={formData.subcategory}
-                  onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="">Select Subcategory</option>
-                  {subcategories[formData.issue_type].map((sub) => (
-                    <option key={sub} value={sub}>
-                      {sub}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              Submit Ticket
-            </button>
-          </form>
-        )}
-
-        {tickets.length > 0 && (
-          <div className="mt-6">
-            <h2 className="text-xl font-semibold mb-2">All Tickets</h2>
-            {tickets.map(ticket => (
-              <div key={ticket.id} className="border p-4 mb-2 rounded bg-white shadow">
-                <h3 className="font-bold">{ticket.subject}</h3>
-                <p>{ticket.description}</p>
-                <p className="text-sm text-gray-500">Priority: {ticket.priority}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={<TicketList tickets={tickets} claimTicket={claimTicket} currentUser={CURRENT_USER} />}
+        />
+        <Route path="/submit" element={<SubmitTicket onSubmit={createTicket} />} />
+        <Route path="/ticket/:id" element={<TicketDetail tickets={tickets} onUpdate={updateTicket} />} />
+      </Routes>
+    </Router>
   );
 }
 
