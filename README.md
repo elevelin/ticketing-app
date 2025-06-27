@@ -85,7 +85,3 @@ Runs on: \`http://localhost:3000\`
 Built by [@elevelin](https://github.com/elevelin) with React + Flask for fun and learning.
 
 ---
-
-## 📜 License
-
-MIT — free to use, modify, and deploy.
