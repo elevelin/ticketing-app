@@ -13,19 +13,25 @@ function TicketList({ tickets, claimTicket, currentUser }) {
   const myTickets = tickets.filter((t) => t.owner === currentUser);
   const [view, setView] = useState("all");
 
-  // Sort tickets to show all statuses
+  // Normalize status to lowercase for filtering
+  const normalizedTickets = tickets.map((t) => ({
+    ...t,
+    status: t.status?.toLowerCase(),
+  }));
+
+  // Filter tickets by allowed statuses
+  const allowedStatuses = [
+    "open",
+    "acknowledged",
+    "in progress",
+    "resolved",
+    "closed",
+    "blocked",
+  ];
+
   const filteredTickets =
     view === "all"
-      ? tickets.filter((t) =>
-    [
-        "open",
-        "acknowledged",
-        "in progress",
-        "resolved",
-        "closed",
-        "blocked",
-    ].includes(t.status?.toLowerCase())
-)
+      ? normalizedTickets.filter((t) => allowedStatuses.includes(t.status))
       : myTickets;
 
   const getPriorityBadge = (priority) => {
@@ -46,12 +52,12 @@ function TicketList({ tickets, claimTicket, currentUser }) {
   };
 
   const getStatusBadge = (status) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case "open":
         return "bg-blue-100 text-blue-800";
       case "acknowledged":
         return "bg-yellow-100 text-yellow-800";
-      case "in progress":
+      case "in_progress":
         return "bg-orange-100 text-orange-800";
       case "resolved":
         return "bg-green-100 text-green-800";
@@ -101,6 +107,8 @@ function TicketList({ tickets, claimTicket, currentUser }) {
               <th className="px-4 py-3">Subject</th>
               <th className="px-4 py-3">Description</th>
               <th className="px-4 py-3">Priority</th>
+              <th className="px-4 py-3">Issue Type</th>
+              <th className="px-4 py-3">Subcategory</th>
               <th className="px-4 py-3">Owner</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Action</th>
@@ -131,6 +139,8 @@ function TicketList({ tickets, claimTicket, currentUser }) {
                       : `Level ${ticket.priority}`}
                   </span>
                 </td>
+                <td className="px-4 py-3 text-sm">{ticket.issue_type || "-"}</td>
+                <td className="px-4 py-3 text-sm">{ticket.subcategory || "-"}</td>
                 <td className="px-4 py-3 text-sm">{ticket.owner || "Unclaimed"}</td>
                 <td className="px-4 py-3 text-sm">
                   <span className={`inline-block px-2 py-1 rounded capitalize ${getStatusBadge(ticket.status)}`}>
@@ -351,7 +361,7 @@ function TicketDetail({ tickets, onUpdate }) {
             <option value="in progress">In Progress</option>
             <option value="resolved">Resolved</option>
             <option value="closed">Closed</option>
-            <option value="closed">Blocked</option>
+            <option value="blocked">Blocked</option>
           </select>
         </div>
 
