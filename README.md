@@ -7,8 +7,8 @@ A simple full-stack IT ticketing system built with React and Flask. Submit, view
 - Create new tickets with subject, description, priority, and category
 - View open and acknowledged tickets on the homepage
 - Backend powered by Flask and SQLite
-- Frontend built with React and Tailwind CSS
-- Basic claim functionality (optional)
+- Frontend built with React
+- Basic claim functionality (future)
 - Easy local development with clear separation of frontend and backend
 
 ---
