@@ -10,25 +10,77 @@ import {
 } from "react-router-dom";
 
 function TicketList({ tickets, claimTicket, currentUser }) {
-  const allTickets = tickets.filter(
-    (t) => t.status === "open" || t.status === "acknowledged"
-  );
   const myTickets = tickets.filter((t) => t.owner === currentUser);
   const [view, setView] = useState("all");
 
+  // Sort tickets to show all statuses
+  const filteredTickets =
+    view === "all"
+      ? tickets.filter((t) =>
+    [
+        "open",
+        "acknowledged",
+        "in progress",
+        "resolved",
+        "closed",
+        "blocked",
+    ].includes(t.status?.toLowerCase())
+)
+      : myTickets;
+
+  const getPriorityBadge = (priority) => {
+    switch (priority) {
+      case 0:
+        return "bg-green-100 text-green-800";
+      case 1:
+        return "bg-yellow-100 text-yellow-800";
+      case 2:
+        return "bg-orange-100 text-orange-800";
+      case 3:
+        return "bg-red-100 text-red-800";
+      case 99:
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "open":
+        return "bg-blue-100 text-blue-800";
+      case "acknowledged":
+        return "bg-yellow-100 text-yellow-800";
+      case "in progress":
+        return "bg-orange-100 text-orange-800";
+      case "resolved":
+        return "bg-green-100 text-green-800";
+      case "closed":
+        return "bg-gray-200 text-gray-800";
+      case "blocked":
+        return "bg-red-200 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <div>
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div className="space-x-2">
           <button
             onClick={() => setView("all")}
-            className={`mr-2 px-4 py-2 rounded ${view === "all" ? "bg-blue-600 text-white" : "bg-white border"}`}
+            className={`px-4 py-2 rounded ${
+              view === "all" ? "bg-blue-600 text-white" : "bg-white border"
+            }`}
           >
             All Tickets
           </button>
           <button
             onClick={() => setView("mine")}
-            className={`px-4 py-2 rounded ${view === "mine" ? "bg-blue-600 text-white" : "bg-white border"}`}
+            className={`px-4 py-2 rounded ${
+              view === "mine" ? "bg-blue-600 text-white" : "bg-white border"
+            }`}
           >
             My Tasks
           </button>
@@ -41,30 +93,64 @@ function TicketList({ tickets, claimTicket, currentUser }) {
         </Link>
       </div>
 
-      <div>
-        {(view === "all" ? allTickets : myTickets).map((ticket) => (
-          <div key={ticket.id} className="border p-4 mb-6 rounded bg-white shadow">
-            <Link
-              to={`/ticket/${ticket.id}`}
-              className="text-sm text-purple-700 font-bold mb-3 block hover:underline"
-            >
-              Ticket ID: {ticket.id}
-            </Link>
-            <h3 className="font-bold text-lg mb-2">{ticket.subject}</h3>
-            <p className="mb-2">{ticket.description}</p>
-            <p className="text-sm text-gray-500 mb-2">
-              Priority: {ticket.priority} | Owner: {ticket.owner || "Unclaimed"}
-            </p>
-            {view === "all" && (!ticket.owner || ticket.owner === "") && (
-              <button
-                className="mt-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                onClick={() => claimTicket(ticket.id)}
-              >
-                Claim
-              </button>
-            )}
-          </div>
-        ))}
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white shadow rounded">
+          <thead>
+            <tr className="bg-gray-100 text-left text-sm font-semibold text-gray-700">
+              <th className="px-4 py-3">Ticket ID</th>
+              <th className="px-4 py-3">Subject</th>
+              <th className="px-4 py-3">Description</th>
+              <th className="px-4 py-3">Priority</th>
+              <th className="px-4 py-3">Owner</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTickets.map((ticket) => (
+              <tr key={ticket.id} className="border-t hover:bg-gray-50">
+                <td className="px-4 py-3 text-purple-700 font-semibold">
+                  <Link to={`/ticket/${ticket.id}`} className="hover:underline">
+                    #{ticket.id}
+                  </Link>
+                </td>
+                <td className="px-4 py-3 font-medium">{ticket.subject}</td>
+                <td className="px-4 py-3 text-gray-600">{ticket.description}</td>
+                <td className="px-4 py-3 text-sm">
+                  <span className={`inline-block px-2 py-1 rounded ${getPriorityBadge(ticket.priority)}`}>
+                    {ticket.priority === 0
+                      ? "Feature Request"
+                      : ticket.priority === 1
+                      ? "Low"
+                      : ticket.priority === 2
+                      ? "Medium"
+                      : ticket.priority === 3
+                      ? "High"
+                      : ticket.priority === 99
+                      ? "Unbreak Immediately"
+                      : `Level ${ticket.priority}`}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-sm">{ticket.owner || "Unclaimed"}</td>
+                <td className="px-4 py-3 text-sm">
+                  <span className={`inline-block px-2 py-1 rounded capitalize ${getStatusBadge(ticket.status)}`}>
+                    {ticket.status.replace("_", " ")}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  {view === "all" && (!ticket.owner || ticket.owner === "") && (
+                    <button
+                      className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                      onClick={() => claimTicket(ticket.id)}
+                    >
+                      Claim
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -262,9 +348,10 @@ function TicketDetail({ tickets, onUpdate }) {
           >
             <option value="open">Open</option>
             <option value="acknowledged">Acknowledged</option>
-            <option value="in_progress">In Progress</option>
+            <option value="in progress">In Progress</option>
             <option value="resolved">Resolved</option>
             <option value="closed">Closed</option>
+            <option value="closed">Blocked</option>
           </select>
         </div>
 

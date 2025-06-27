@@ -44,7 +44,6 @@ def get_tickets():
             "priority": t.priority,
             "status": t.status,
             "owner": t.owner,
-            "is_incident": t.is_incident,
             "created_at": t.created_at.isoformat(),
             "updated_at": t.updated_at.isoformat()
         }
@@ -62,8 +61,7 @@ def create_ticket():
         subcategory=data.get('subcategory', ''),
         priority=int(data.get('priority', 0)),
         status='open',
-        owner='',
-        is_incident=False
+        owner=''
     )
     db.session.add(ticket)
     db.session.commit()
@@ -76,7 +74,6 @@ def create_ticket():
         "priority": ticket.priority,
         "status": ticket.status,
         "owner": ticket.owner,
-        "is_incident": ticket.is_incident,
         "created_at": ticket.created_at.isoformat(),
         "updated_at": ticket.updated_at.isoformat()
     }), 201
@@ -123,7 +120,6 @@ def get_tickets_by_owner(owner):
             "priority": t.priority,
             "status": t.status,
             "owner": t.owner,
-            "is_incident": t.is_incident,
             "created_at": t.created_at.isoformat(),
             "updated_at": t.updated_at.isoformat()
         }
